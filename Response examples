@@ -1,0 +1,42 @@
+---Getting steam id for username successfully---
+{
+    "response": {
+        "steamid": "76561197970565175",
+        "success": 1
+    }
+}
+
+---Getting steam id for non-existant username---
+{
+    "response": {
+        "success": 42,
+        "message": "No match"
+    }
+}
+
+---Getting list of games successfully---
+{
+    "response": {
+        "game_count": 453,
+        "games": [
+            {
+                "appid": 220,
+                "playtime_forever": 162
+            },
+            {
+                "appid": 240,
+                "playtime_forever": 104
+            },
+            {
+                "appid": 280,
+                "playtime_forever": 0
+            },
+            {
+                "appid": 7600,
+                "playtime_2weeks": 29,
+                "playtime_forever": 910
+            }
+        ]
+        
+    }
+}
