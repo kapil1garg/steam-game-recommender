@@ -10,8 +10,13 @@ def main():
     # Our API key DON'T FORGET TO REMOVE BEFORE COMMITTING
     api_key = 'api_key_here'
 
+    if len(api_key) != 32:
+        print("Uh-oh, don't forget to enter your API key!")
+        return
+
     # Minimum number of users a game must have before being used in data
-    min_users = 4
+    # Can be adjusted after user data is pulled
+    min_users = 5
 
     # Require that a user has played a game before using it for data
     require_play = True
@@ -39,7 +44,6 @@ def main():
             # If user is found
             if id_response_json and id_response_json['response']['success'] == 1:
                 steam_id = str(id_response_json['response']['steamid'])
-                # print(steam_id)
 
                 # Get the list of owned games
                 games_response_json = json.loads(requests.get('http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=' + api_key + '&steamid=' + steam_id).text)
@@ -57,12 +61,23 @@ def main():
                         if play_time != 0 or not require_play:
                             game_users[app_id] += 1
 
-
     # Get all of the game names and IDs from steam and save them in a dictionary for easy usage
     game_list = json.loads(requests.get("http://api.steampowered.com/ISteamApps/GetAppList/v2").text)['applist']['apps']
     game_dict = {}
     for game in game_list:
         game_dict[game['appid']] = game
+
+    # Display results and give a chance to adjust min_users
+    print("A total of " + str(len(user_cache)) + " users were successfully found")
+
+    desired_min_users = min_users
+
+    while desired_min_users != "okay":
+        min_users = int(desired_min_users)
+        game_count = sum(i >= min_users for i in game_users)
+        print("\nThe current minimum number of users a game must have to be considered is: " + str(min_users))
+        print(str(game_count) + " games satisfy this criteria")
+        desired_min_users = raw_input("Type a new minimum number of users to try it out, else type okay to continue: ")
 
     # Look for games with at least min_users, add it to the list of games to consider
     for app_id in range(1, len(game_users)):
