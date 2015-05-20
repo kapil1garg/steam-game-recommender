@@ -61,14 +61,13 @@ def main():
     # Look for games with at least min_users, add it to the list of games to consider
     for app_id in range(1, len(game_users)):
         if game_users[app_id] >= min_users:
-            print("Finding game name for id " + str(app_id * 10))
-
             game_schema_response_json = json.loads(requests.get("http://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=" + api_key + "&appid=" + str(app_id * 10)).content)
             if game_schema_response_json:
                 game_name = game_schema_response_json['game'].get('gameName', str(app_id * 10)).encode('ascii', 'replace')
                 game_name = game_name if game_name else str(app_id * 10)
 
                 if "ValveTestApp" not in game_name:
+                    # print("Found game name for id " + str(app_id * 10))
                     game_names.append(game_name if game_name else str(app_id * 10))
                     game_id_list.append(app_id * 10)
 
