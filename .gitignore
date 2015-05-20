@@ -129,3 +129,5 @@ target/
 vignettes/*.html
 vignettes/*.pdf
 
+# specific files
+data/

@@ -8,7 +8,7 @@ import json
 
 def main():
     # Our API key DON'T FORGET TO REMOVE BEFORE COMMITTING
-    api_key = "73852B3DFED0627A3747C7E97B384154"
+    api_key = "api key here"
 
     if len(api_key) != 32:
         print("Uh-oh, don't forget to enter your API key!")
