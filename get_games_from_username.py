@@ -8,7 +8,7 @@ import json
 
 def main():
     # Our API key DON'T FORGET TO REMOVE BEFORE COMMITTING
-    api_key = 'api_key_here'
+    api_key = "73852B3DFED0627A3747C7E97B384154"
 
     if len(api_key) != 32:
         print("Uh-oh, don't forget to enter your API key!")
@@ -34,10 +34,10 @@ def main():
     # Dictionary of users where the key is their username and the data is a tuple of their steam_id and a dictionary of games
     user_cache = {}
 
-    with open('data/steam_usernames_test.csv', 'r') as f:
+    with open('data/steam_id.csv', 'rU') as f:
         for username in f:
             username = username.rstrip()
-            #print("Retrieving user and game data for " + username)
+            print "Retrieving user and game data for " + username + "...",
             id_response_json = json.loads(requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + username).text)
             # print json.dumps(id_response_json)
 
@@ -50,6 +50,8 @@ def main():
 
                 # If the user has games
                 if games_response_json['response'] and games_response_json['response']['game_count'] > 0:
+                    print "success"
+
                     # Get their steam id and games and save it in our cache
                     user_cache[username] = (steam_id, games_response_json['response']['games'])
 
@@ -60,6 +62,10 @@ def main():
                         # If the game has been played, increment the user count for that game
                         if play_time != 0 or not require_play:
                             game_users[app_id] += 1
+                else:
+                    print "not enough games. User will be ignored."
+            else:
+                print "not found. User will be ignored."
 
     # Get all of the game names and IDs from steam and save them in a dictionary for easy usage
     game_list = json.loads(requests.get("http://api.steampowered.com/ISteamApps/GetAppList/v2").text)['applist']['apps']
