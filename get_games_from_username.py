@@ -8,20 +8,23 @@ import json
 
 def main():
     # Our API key DON'T FORGET TO REMOVE BEFORE COMMITTING
-    api_key = 'API_KEY_HERE'
+    api_key = 'insert_key_here'
 
     # Minimum number of users a game must have before being used in data
-    min_users = 2
+    min_users = 4
 
     # Require that a user has played a game before using it for data
     require_play = True
 
     # An array counting the number of users for each game
     # The index is the app_id and the entry is the number of users
-    game_users = [0] * 400000
+    game_users = [0] * 40000
 
     # List of game app_ids for games with at least min_users
     game_id_list = []
+
+    # List of game names for games with at least min_users
+    game_names = []
 
     # Dictionary of users where the key is their username and the data is a tuple of their steam_id and a dictionary of games
     user_cache = {}
@@ -29,7 +32,7 @@ def main():
     with open('data/steam_usernames_test.csv', 'r') as f:
         for username in f:
             username = username.rstrip()
-            print("Retrieving user and game data...")
+            print("Retrieving user and game data for " + username)
             id_response_json = json.loads(requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + username).text)
             # print json.dumps(id_response_json)
 
@@ -49,16 +52,22 @@ def main():
 
                     for game in games_response_json['response']['games']:
                         app_id = game['appid']
-                        play_time = game['playtime_forever']
+                        play_time = int(game['playtime_forever'])
 
                         # If the game has been played, increment the user count for that game
-                        if play_time or not require_play:
-                            game_users[app_id] += 1
+                        if play_time != 0 or not require_play:
+                            print(play_time)
+                            game_users[app_id / 10] += 1
 
     # Look for games with at least min_users, add it to the list of games to consider
     for app_id in range(1, len(game_users)):
         if game_users[app_id] >= min_users:
-            game_id_list.append(app_id)
+            print("Finding game name for id " + str(app_id * 10))
+            game_id_list.append(app_id * 10)
+
+            game_schema_response_json = json.loads(requests.get("http://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=" + api_key + "&appid=" + str(app_id * 10)).text)
+            if game_schema_response_json:
+                game_names.append(game_schema_response_json['game'].get('gameName', str(app_id * 10)))
 
     # The number of games that we've decided to collect data on
     game_count = len(game_id_list)
@@ -66,9 +75,9 @@ def main():
     # Lets start writing some data
     # Data is a bit string where 1 means owned 0 means not owned
     with open('data/games_by_username.csv', 'w') as w:
-        w.write(",".join([str(x) for x in game_id_list]) + "\n")
+        w.write(",".join(game_names) + "\n")
         for username in user_cache:
-            print("Processing user data...")
+            print("Processing user data for " + username)
             steam_id = user_cache[username][0]
             data = [0] * game_count
 
