@@ -18,7 +18,7 @@ def main():
 
     # An array counting the number of users for each game
     # The index is the app_id and the entry is the number of users
-    game_users = [0] * 40000
+    game_users = [0] * 400000
 
     # List of game app_ids for games with at least min_users
     game_id_list = []
@@ -43,7 +43,6 @@ def main():
 
                 # Get the list of owned games
                 games_response_json = json.loads(requests.get('http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=' + api_key + '&steamid=' + steam_id).text)
-                # print(json.dumps(games_response_json))
 
                 # If the user has games
                 if games_response_json['response'] and games_response_json['response']['game_count'] > 0:
@@ -56,20 +55,22 @@ def main():
 
                         # If the game has been played, increment the user count for that game
                         if play_time != 0 or not require_play:
-                            game_users[app_id / 10] += 1
+                            game_users[app_id] += 1
+
+
+    # Get all of the game names and IDs from steam and save them in a dictionary for easy usage
+    game_list = json.loads(requests.get("http://api.steampowered.com/ISteamApps/GetAppList/v2").text)['applist']['apps']
+    game_dict = {}
+    for game in game_list:
+        game_dict[game['appid']] = game
 
     # Look for games with at least min_users, add it to the list of games to consider
     for app_id in range(1, len(game_users)):
         if game_users[app_id] >= min_users:
-            game_schema_response_json = json.loads(requests.get("http://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/?key=" + api_key + "&appid=" + str(app_id * 10)).content)
-            if game_schema_response_json:
-                game_name = game_schema_response_json['game'].get('gameName', str(app_id * 10)).encode('ascii', 'replace')
-                game_name = game_name if game_name else str(app_id * 10)
+            game_name = game_dict[app_id]['name'].encode('ascii', 'ignore')
 
-                if "ValveTestApp" not in game_name:
-                    # print("Found game name for id " + str(app_id * 10))
-                    game_names.append(game_name if game_name else str(app_id * 10))
-                    game_id_list.append(app_id * 10)
+            game_names.append(game_name)
+            game_id_list.append(app_id)
 
     # The number of games that we've decided to collect data on
     game_count = len(game_id_list)
@@ -78,7 +79,7 @@ def main():
     # Data is a bit string where 1 means owned 0 means not owned
     with open('data/games_by_username.csv', 'w') as w:
         w.write(",".join(game_names) + "\n")
-        #w.write(",".join([str(x) for x in game_id_list]) + "\n")
+        # w.write(",".join([str(x) for x in game_id_list]) + "\n")
         for username in user_cache:
             #print("Processing user data for " + username)
             steam_id = user_cache[username][0]
