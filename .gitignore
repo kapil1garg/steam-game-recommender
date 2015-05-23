@@ -129,5 +129,6 @@ target/
 vignettes/*.html
 vignettes/*.pdf
 
-# specific files
+# specific files and folders
 data/
+APIs/
