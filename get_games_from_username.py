@@ -6,9 +6,17 @@ import traceback
 import requests
 import json
 
+def get_keys(filepath):
+    key_list = []
+    with open(filepath) as keys:
+        for key in keys: 
+            key_list.append(key.rstrip())
+    return key_list
+
 def main():
     # Our API key DON'T FORGET TO REMOVE BEFORE COMMITTING
-    api_key = "api key here"
+    all_api_keys = get_keys("./APIs/steam.txt")
+    api_key = str(all_api_keys[0])
 
     if len(api_key) != 32:
         print("Uh-oh, don't forget to enter your API key!")
@@ -34,7 +42,7 @@ def main():
     # Dictionary of users where the key is their username and the data is a tuple of their steam_id and a dictionary of games
     user_cache = {}
 
-    with open('data/steam_id.csv', 'rU') as f:
+    with open('data/steam_usernames_test.csv', 'rU') as f:
         for username in f:
             username = username.rstrip()
             print "Retrieving user and game data for " + username + "...",
@@ -98,7 +106,7 @@ def main():
 
     # Lets start writing some data
     # Data is a bit string where 1 means owned 0 means not owned
-    with open('data/games_by_username.csv', 'w') as w:
+    with open('data/games_by_username_test.csv', 'w') as w:
         w.write(",".join(game_names) + "\n")
         # w.write(",".join([str(x) for x in game_id_list]) + "\n")
         for username in user_cache:
