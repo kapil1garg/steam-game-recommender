@@ -97,7 +97,7 @@ def main():
     # Look for games with at least min_users, add it to the list of games to consider
     for app_id in range(1, len(game_users)):
         if game_users[app_id] >= min_users:
-            game_name = game_dict[app_id]['name'].encode('ascii', 'ignore').translate(None, string.punctuation)
+            game_name = game_dict[app_id]['name'].encode('ascii', 'ignore').translate(None, string.punctuation).replace(" ", "_")
 
             game_names.append(game_name)
             game_id_list.append(app_id)
@@ -107,8 +107,11 @@ def main():
 
     # Lets start writing some data
     # Data is a bit string where 1 means owned 0 means not owned
-    with open('data/games_by_username_test.csv', 'w') as w:
-        w.write(",".join(game_names) + "\n")
+    with open('data/games_by_username.arff', 'w') as w:
+        w.write("@RELATION steam_users\n\n")
+        for name in game_names:
+            w.write("@ATTRIBUTE " + name + " {0,1}\n")
+        w.write("\n@DATA\n")
         # w.write(",".join([str(x) for x in game_id_list]) + "\n")
         for username in user_cache:
             #print("Processing user data for " + username)
