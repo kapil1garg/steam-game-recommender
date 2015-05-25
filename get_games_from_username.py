@@ -15,7 +15,7 @@ def get_keys(filepath):
     return key_list
 
 def main():
-    # Our API key DON'T FORGET TO REMOVE BEFORE COMMITTING
+    # Get API key
     all_api_keys = get_keys("./APIs/steam.txt")
     api_key = str(all_api_keys[0])
 
