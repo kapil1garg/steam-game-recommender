@@ -43,7 +43,7 @@ def main():
     # Dictionary of users where the key is their username and the data is a tuple of their steam_id and a dictionary of games
     user_cache = {}
 
-    with open('data/steam_usernames_test.csv', 'rU') as f:
+    with open('data/steam_id.csv', 'rU') as f:
         for username in f:
             username = username.rstrip()
             print "Retrieving user and game data for " + username + "...",
@@ -107,11 +107,34 @@ def main():
 
     # Lets start writing some data
     # Data is a bit string where 1 means owned 0 means not owned
-    with open('data/games_by_username.arff', 'w') as w:
+    
+    # Write ARFF
+    with open('data/games_by_username_all.arff', 'w') as w:
         w.write("@RELATION steam_users\n\n")
         for name in game_names:
             w.write("@ATTRIBUTE " + name + " {0,1}\n")
         w.write("\n@DATA\n")
+        # w.write(",".join([str(x) for x in game_id_list]) + "\n")
+        for username in user_cache:
+            #print("Processing user data for " + username)
+            steam_id = user_cache[username][0]
+            data = [0] * game_count
+
+            # Go through their games
+            for game in user_cache[username][1]:
+                app_id = game['appid']
+                play_time = game['playtime_forever']
+
+                # If the game has been played, save that in the data bit string
+                if (play_time or not require_play) and app_id in game_id_list:
+                    data[game_id_list.index(app_id)] = 1
+
+            # Write the data
+            w.write(",".join([str(x) for x in data]) + "\n")
+
+    # Write CSV
+    with open('data/games_by_username_all.csv', 'w') as w:
+        w.write(",".join(game_names) + "\n")
         # w.write(",".join([str(x) for x in game_id_list]) + "\n")
         for username in user_cache:
             #print("Processing user data for " + username)
