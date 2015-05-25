@@ -4,6 +4,7 @@ import pdb
 
 import traceback
 import requests
+import string
 import json
 
 def get_keys(filepath):
@@ -96,7 +97,7 @@ def main():
     # Look for games with at least min_users, add it to the list of games to consider
     for app_id in range(1, len(game_users)):
         if game_users[app_id] >= min_users:
-            game_name = game_dict[app_id]['name'].encode('ascii', 'ignore')
+            game_name = game_dict[app_id]['name'].encode('ascii', 'ignore').translate(None, string.punctuation)
 
             game_names.append(game_name)
             game_id_list.append(app_id)
