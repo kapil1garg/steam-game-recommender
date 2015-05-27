@@ -20,7 +20,7 @@ def loadDataset(filename, split, trainingSet=[] , testSet=[]):
 def hammingDistance(instance1, instance2, length):
 	distance = 0
 	for x in range(length):
-		if instance1[x] != instance2[2]:
+		if instance1[x] != instance2[x]:
 			distance += 1
 	return distance
 
@@ -36,7 +36,8 @@ def findClosest(test, length):
 
 trainingSet=[]
 testSet=[]
-loadDataset('./data/games_by_username.csv', 0.66, trainingSet, testSet)
+print "Begin"
+loadDataset('./data/games_by_username_all.csv', 0.66, trainingSet, testSet)
 print 'Train: ' + repr(len(trainingSet))
 print 'Test: ' + repr(len(testSet))
 closestOne, dist = findClosest(testSet[0], len(trainingSet[0]))
@@ -44,4 +45,4 @@ print '# Games: ',
 print len(trainingSet[0])
 print 'Distance: ' + repr(dist)
 print 'Closest Node: ',
-print closestOne
+#print closestOne
