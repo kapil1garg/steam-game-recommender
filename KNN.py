@@ -41,16 +41,6 @@ def findClosest(target, k):
     minDist = [hammingDistance(target, x) for x in closest]
     return closest, minDist
 
-    closest = None
-    minDist = hammingDistance(target, trainingSet[0])
-
-    for entry in trainingSet:
-        tempDist = hammingDistance(target, entry)
-        if tempDist < minDist:
-            closest = entry
-            minDist = tempDist
-    return closest, minDist
-
 try:
     print "Begin"
     loadDataset('./data/games_by_username.csv', 0.66)
