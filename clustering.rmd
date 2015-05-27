@@ -1,0 +1,189 @@
+---
+title: "Clustering Steam Games"
+author: "Kapil Arun Garg"
+date: "May 27, 2015"
+output: html_document
+---
+
+This document will be used to perform clustering and calculate silhouette coefficients on Steam Game Data to find the optimal clustering level
+
+Load Libraries and necessary functons
+```{r Libraries and Functions, echo = FALSE}
+library(data.table)
+library(lubridate)
+library(reshape2)
+library(ggplot2)
+library(grid)
+library(dplyr)
+library(TTR)
+library(scales)
+library(cluster)
+library(rpud)
+options(digits = 15)
+options(scipen = 100)
+
+###Functions###
+
+##SOURCED FROM COOKBOOK FOR R: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_%28ggplot2%29/ ##
+Multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL)
+  {
+  require(grid)
+  
+  plots <- c(list(...), plotlist)
+  
+  numPlots = length(plots)
+  
+  if (is.null(layout)) {
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                     ncol = cols, nrow = ceiling(numPlots/cols))
+    }
+  
+  if (numPlots == 1) {
+    print(plots[[1]])
+    
+    } else {
+      grid.newpage()
+      pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+      
+      for (i in 1:numPlots) {
+        matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+        
+        print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                        layout.pos.col = matchidx$col))
+        }
+      }
+  }
+
+##SOURCED FROM: http://rpubs.com/kohske/dual_axis_in_ggplot2 ##
+MultipleAxes <- function(plot1, plot2)
+  {
+  # extract gtable but create the plots first
+  g1 <- ggplot_gtable(ggplot_build(plot1))
+  g2 <- ggplot_gtable(ggplot_build(plot2))
+  
+  # overlap the panel of 2nd plot on that of 1st plot
+  pp <- c(subset(g1$layout, name == "panel", se = t:r))
+  g <- gtable_add_grob(g1, g2$grobs[[which(g2$layout$name == "panel")]], pp$t, pp$l, pp$b, pp$l)
+  
+  # axis tweaks
+  ia <- which(g2$layout$name == "axis-l")
+  ga <- g2$grobs[[ia]]
+  ax <- ga$children[[2]]
+  ax$widths <- rev(ax$widths)
+  ax$grobs <- rev(ax$grobs)
+  ax$grobs[[1]]$x <- ax$grobs[[1]]$x - unit(1, "npc") + unit(0.15, "cm")
+  g <- gtable_add_cols(g, g2$widths[g2$layout[ia, ]$l], length(g$widths) - 1)
+  g <- gtable_add_grob(g, ax, pp$t, length(g$widths) - 1, pp$b)
+  
+  # add y axis label on right
+  ia2 <- which(g2$layout$name == "ylab")
+  ga2 <- g2$grobs[[ia2]]
+  ga2$rot <- -90
+  g <- gtable_add_cols(g, g2$widths[g2$layout[ia2, ]$l], length(g$widths) - 1)
+  g <- gtable_add_grob(g, ga2, pp$t, length(g$widths) - 1, pp$b)
+  
+  #Draw graph
+  #grid.draw(g)
+  return(g)
+  }
+
+#Function to align ggplot objects 
+##SOURCED FROM baptiste: http://stackoverflow.com/questions/13294952/left-align-two-graph-edges-ggplot/13295880#13295880 ##
+RbindGtableMax <- function(...){
+  gtl <- list(...)
+  stopifnot(all(sapply(gtl, is.gtable)))
+  Bind2 <- function (x, y) 
+    {
+    stopifnot(ncol(x) == ncol(y))
+    if (nrow(x) == 0) 
+      return(y)
+    if (nrow(y) == 0) 
+      return(x)
+    y$layout$t <- y$layout$t + nrow(x)
+    y$layout$b <- y$layout$b + nrow(x)
+    x$layout <- rbind(x$layout, y$layout)
+    x$heights <- gtable:::insert.unit(x$heights, y$heights)
+    x$rownames <- c(x$rownames, y$rownames)
+    x$widths <- grid::unit.pmax(x$widths, y$widths)
+    x$grobs <- append(x$grobs, y$grobs)
+    x
+    }
+  
+  Reduce(Bind2, gtl)
+  }
+
+CbindGtableMax <- function(...){
+  gtl <- list(...)
+  stopifnot(all(sapply(gtl, is.gtable)))
+  Bind2 <- function (x, y) 
+    {
+    stopifnot(nrow(x) == nrow(y))
+    if (ncol(x) == 0) 
+      return(y)
+    if (ncol(y) == 0) 
+      return(x)
+    y$layout$l <- y$layout$l + ncol(x)
+    y$layout$r <- y$layout$r + ncol(x)
+    x$layout <- rbind(x$layout, y$layout)
+    x$widths <- gtable:::insert.unit(x$widths, y$widths)
+    x$colnames <- c(x$colnames, y$colnames)
+    x$heights <- grid::unit.pmax(x$heights, y$heights)
+    x$grobs <- append(x$grobs, y$grobs)
+    x
+    }
+  Reduce(Bind2, gtl)
+  }
+
+#Custom tranformation for an nth-root axis
+NthrootTrans <- function(base = 2)
+  {
+  trans <- function(x) x^(1/base)
+  inv <- function(x) x^base
+  trans_new(paste0("nthroot", format(base)), trans, inv, domain = c(0, Inf))
+  }
+
+#Rescale data to lower and upper values (default: 0-1) scale based on data sets min and max
+CustomRange <- function(x, lower = 0, upper = 1)
+  {
+  return(((x - min(x)) * ((upper - lower)/(max(x)-min(x))) + lower))
+  }
+
+#Calculate the percentile ranks for each entry in a vector
+##SOURCED FROM chi: http://stats.stackexchange.com/questions/11924/computing-percentile-rank-in-r ##
+perc.rank <- function(x) trunc(rank(x))/length(x)
+
+## Functions to compute difference in months, SOURCED FROM: http://stackoverflow.com/questions/1995933/number-of-months-between-two-dates
+monnb <- function(d) { 
+  lt <- as.POSIXlt(as.Date(d, origin="1900-01-01"))
+  lt$year*12 + lt$mon
+  } 
+# compute a month difference as a difference between two monnb's
+mondf <- function(d1, d2) { monnb(d2) - monnb(d1) }
+``` 
+
+Data from extenal file generated by Python script
+```{r Pull Data, echo = TRUE}
+# Import pulled Steam data
+raw.data <- fread("./data/games_by_username_all.csv", header = T, verbose=T)
+```
+
+Compute basic statistics for data
+```{r Simple Stats, echo = TRUE}
+number.games = ncol(raw.data)
+number.ids = nrow(raw.data)
+```
+
+Computer silhouette coefficients for various number of clusters
+```{r Silhouette Coefficients, echo = TRUE}
+coeff_table<-numeric(0)
+  head(coeff_table)
+	for(i in 2:10)
+	{
+    set.seed(1)
+		coeff_table<-c(coeff_table,summary(silhouette(kmeans(raw.data, centers=i)$cluster,dist(raw.data)))$avg.width)
+	}
+	head(coeff_table)
+kmeans(raw.data, 5)
+
+
+```
