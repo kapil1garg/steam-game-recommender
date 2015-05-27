@@ -43,11 +43,15 @@ def main():
     # Dictionary of users where the key is their username and the data is a tuple of their steam_id and a dictionary of games
     user_cache = {}
 
+    # Set up a requests session to allow retries when a request fails
+    session = requests.Session()
+    session.mount("http://", requests.adapters.HTTPAdapter(max_retries=10))
+
     with open('data/steam_id.csv', 'rU') as f:
         for username in f:
             username = username.rstrip()
             print "Retrieving user and game data for " + username + "...",
-            id_response_json = json.loads(requests.get('http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + username).text)
+            id_response_json = json.loads(session.get(url='http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + username).text)
             # print json.dumps(id_response_json)
 
             # If user is found
@@ -55,7 +59,7 @@ def main():
                 steam_id = str(id_response_json['response']['steamid'])
 
                 # Get the list of owned games
-                games_response_json = json.loads(requests.get('http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=' + api_key + '&steamid=' + steam_id).text)
+                games_response_json = json.loads(session.get(url='http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=' + api_key + '&steamid=' + steam_id).text)
 
                 # If the user has games
                 if games_response_json['response'] and games_response_json['response']['game_count'] > 0:
@@ -77,7 +81,7 @@ def main():
                 print "not found. User will be ignored."
 
     # Get all of the game names and IDs from steam and save them in a dictionary for easy usage
-    game_list = json.loads(requests.get("http://api.steampowered.com/ISteamApps/GetAppList/v2").text)['applist']['apps']
+    game_list = json.loads(session.get(url="http://api.steampowered.com/ISteamApps/GetAppList/v2").text)['applist']['apps']
     game_dict = {}
     for game in game_list:
         game_dict[game['appid']] = game
