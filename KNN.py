@@ -1,6 +1,7 @@
 import csv
 import random
 import math
+import operator
 
 import sys
 import pdb
@@ -9,12 +10,15 @@ import traceback
 dataset = []
 trainingSet = []
 testSet = []
+header_row = []
 
 def loadDataset(filename, split):
     # Open the file
     with open(filename, 'rb') as f:
         # Read the header line so it is not used in data
-        next(f, None)
+        first_row = f.next()
+        first_row = ''.join(first_row.splitlines())
+        header_row.extend(first_row.split(","))
 
         for row in f:
             # Get rid of commas
@@ -41,17 +45,70 @@ def findClosest(target, k):
     minDist = [hammingDistance(target, x) for x in closest]
     return closest, minDist
 
+def getGames(target):
+    bit_string = bin(target)
+    header_length = len(header_row)
+
+    if header_length > len(bit_string):
+        bit_string = ("0" * (header_length - len(bit_string))) + bit_string
+    
+    game_list = []
+    for i in range(header_length):
+        if bit_string[i] == "1":
+            game_list.append(header_row[i])
+    return game_list
+
+def findDifferentGames(closest, instance):
+    return ((closest | instance) ^ instance)
+
+def getVotes(neighbors, instance):
+    # Compress into 1 list
+    compressed_games = sum([getGames(findDifferentGames(x, instance)) for x in neighbors], [])
+
+    # Convert into dictionary and return
+    return dict([game, compressed_games.count(game)] for game in compressed_games)
+
+def getTopGames(ranked_games, n):
+    sorted_games = sorted(ranked_games.items(), key = operator.itemgetter(1))
+    top_n = sorted_games[-n:]
+    return top_n[::-1]
+
+
 try:
     print "Begin"
-    loadDataset('./data/games_by_username.csv', 0.66)
-    print 'Train: ' + str(len(trainingSet))
-    print 'Test: ' + str(len(testSet))
-    closestOne, dist = findClosest(testSet[0], 2)
-    print '# Games: ',
-    print int(math.floor(math.log(trainingSet[0])))
-    print 'Distance: ' + str(dist)
-    print 'Closest Node: ',
-    print closestOne
+    loadDataset('./data/games_by_username_all.csv', 0.99)
+    print 'Train: ' + str(len(trainingSet)) + " instances"
+    print 'Test: ' + str(len(testSet)) + " instances"
+    print '# Games: ' + str(len(header_row))
+
+    n_neighbors = 100
+    print "Number of closest neighbors evaluated: " + str(n_neighbors)
+    # print int(math.floor(math.log(trainingSet[0])))
+    closest, dist = findClosest(testSet[0], n_neighbors)
+
+    # print 'Distance: ' + str(dist)
+    # print 'Closest Node: ',
+    # print closest
+
+    # print getGames(closest[0])
+    # print getGames(closest[1])
+    # print getGames(testSet[0])
+
+    # print "\nGetting Game Delta for closest member"
+    # print getGames(findDifferentGames(closest[0], testSet[0]))
+
+    # print "Getting Game Delta for 2nd closest member"
+    # print getGames(findDifferentGames(closest[1], testSet[0]))
+    
+    print
+
+    print "All games different"
+    print getVotes(closest, testSet[0])
+    print
+
+    print "Top 5 games"
+    print getTopGames(getVotes(closest, testSet[0]), 5)
+    print
 except Exception as e:
     typ, value, tb = sys.exc_info()
     traceback.print_exc()
