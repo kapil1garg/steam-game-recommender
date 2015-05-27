@@ -111,7 +111,7 @@ def main():
     with open('data/games_by_username_all.arff', 'w') as w:
         w.write("@RELATION steam_users\n\n")
         for id in game_id_list:
-            w.write("@ATTRIBUTE " + name + " {0,1}\n")
+            w.write("@ATTRIBUTE " + str(id) + " {0,1}\n")
         w.write("\n@DATA\n")
         # w.write(",".join([str(x) for x in game_id_list]) + "\n")
         for username in user_cache:
