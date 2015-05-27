@@ -28,13 +28,14 @@ def loadDataset(filename, split):
             row = int(row, 2)
 
             # Add it to the full data set
-            dataset.append(row)
+            if row != 0: 
+                dataset.append(row)
 
-            # Add it to training or test data according to split
-            if random.random() < split:
-                trainingSet.append(row)
-            else:
-                testSet.append(row)
+                # Add it to training or test data according to split
+                if random.random() < split:
+                    trainingSet.append(row)
+                else:
+                    testSet.append(row)
 
 def hammingDistance(instance1, instance2):
     # xor the two numbers, convert it a string representation of the binary number, then count the number of 1s
@@ -46,17 +47,9 @@ def findClosest(target, k):
     return closest, minDist
 
 def getGames(target):
-    bit_string = bin(target)
     header_length = len(header_row)
-
-    if header_length > len(bit_string):
-        bit_string = ("0" * (header_length - len(bit_string))) + bit_string
-    
-    game_list = []
-    for i in range(header_length):
-        if bit_string[i] == "1":
-            game_list.append(header_row[i])
-    return game_list
+    bit_string = bin(target)[2:].zfill(header_length)
+    return [header_row[i] for i in range(header_length) if bit_string[i] == "1"]
 
 def findDifferentGames(closest, instance):
     return ((closest | instance) ^ instance)
