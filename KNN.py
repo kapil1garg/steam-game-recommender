@@ -2,47 +2,67 @@ import csv
 import random
 import math
 
-def loadDataset(filename, split, trainingSet=[] , testSet=[]):
-	numLine = 0
-	with open(filename, 'rb') as csvfile:
-	    lines = csv.reader(csvfile)
-	    dataset = list(lines)
-	    for x in range(len(dataset)-1):
-	    	if numLine > 0:
-		        for y in range(len(dataset[x])):
-		            dataset[x][y] = float(dataset[x][y])
-		        if random.random() < split:
-		            trainingSet.append(dataset[x])
-		        else:
-		            testSet.append(dataset[x])
-	    	numLine += 1
+import sys
+import pdb
+import traceback
 
-def hammingDistance(instance1, instance2, length):
-	distance = 0
-	for x in range(length):
-		if instance1[x] != instance2[x]:
-			distance += 1
-	return distance
+dataset = []
+trainingSet = []
+testSet = []
 
-def findClosest(test, length):
-	closest = None
-	minDist = hammingDistance(test, trainingSet[0], len(trainingSet[0]))
-	for x in range(len(trainingSet)):
-		tempDist = hammingDistance(test, trainingSet[x], len(trainingSet[0]))
-		if tempDist < minDist:
-			minDist = tempDist
-			closest = trainingSet[x]
-	return closest, minDist
+def loadDataset(filename, split):
+    # Open the file
+    with open(filename, 'rb') as f:
+        # Read the header line so it is not used in data
+        next(f, None)
 
-trainingSet=[]
-testSet=[]
-print "Begin"
-loadDataset('./data/games_by_username_all.csv', 0.66, trainingSet, testSet)
-print 'Train: ' + repr(len(trainingSet))
-print 'Test: ' + repr(len(testSet))
-closestOne, dist = findClosest(testSet[0], len(trainingSet[0]))
-print '# Games: ',
-print len(trainingSet[0])
-print 'Distance: ' + repr(dist)
-print 'Closest Node: ',
-#print closestOne
+        for row in f:
+            # Get rid of commas
+            row = row.translate(None, ",")
+
+            # Convert bit string into integer
+            row = int(row, 2)
+
+            # Add it to the full data set
+            dataset.append(row)
+
+            # Add it to training or test data according to split
+            if random.random() < split:
+                trainingSet.append(row)
+            else:
+                testSet.append(row)
+
+def hammingDistance(instance1, instance2):
+    # xor the two numbers, convert it a string representation of the binary number, then count the number of 1s
+    return bin(instance1 ^ instance2).count("1")
+
+def findClosest(target, k):
+    closest = sorted(trainingSet, key=lambda n: hammingDistance(target, n))[:k]
+    minDist = [hammingDistance(target, x) for x in closest]
+    return closest, minDist
+
+    closest = None
+    minDist = hammingDistance(target, trainingSet[0])
+
+    for entry in trainingSet:
+        tempDist = hammingDistance(target, entry)
+        if tempDist < minDist:
+            closest = entry
+            minDist = tempDist
+    return closest, minDist
+
+try:
+    print "Begin"
+    loadDataset('./data/games_by_username.csv', 0.66)
+    print 'Train: ' + str(len(trainingSet))
+    print 'Test: ' + str(len(testSet))
+    closestOne, dist = findClosest(testSet[0], 2)
+    print '# Games: ',
+    print int(math.floor(math.log(trainingSet[0])))
+    print 'Distance: ' + str(dist)
+    print 'Closest Node: ',
+    print closestOne
+except Exception as e:
+    typ, value, tb = sys.exc_info()
+    traceback.print_exc()
+    pdb.post_mortem(tb)
