@@ -9,7 +9,7 @@ import pdb
 import traceback
 
 class KNNClassifier:
-    'k-NN Classifier using Hamming Distance'
+    'k-NN Classifier using Hamming Distanceg'
 
     def __init__(self, train_data, test_data, test_games):
         train_header_row, self.train_set = self.loadDataset(train_data)
@@ -31,6 +31,7 @@ class KNNClassifier:
         print "Total examples: " + str(len(self.train_set) + len(self.test_set))
         print "Number training examples: " + str(len(self.train_set))
         print "Number testing examples: " + str(len(self.test_set))
+        print 
 
     def loadDataset(self, filename):
         """Loads data from a csv file"""
@@ -50,28 +51,30 @@ class KNNClassifier:
             true_labels = []
             classification = []
 
-            for t in range(0, 10): # FOR TESTING ONLY!!!
-            # for t in range(len(self.test_set)):                
-                print t
+            print "Testing game " + str(g) + " with " + str(k) + " nearest neighbors"
+
+            # for t in range(0, 10): # FOR TESTING ONLY!!!
+            for t in range(len(self.test_set)):                
                 t = self.test_set[t]
                 true_labels.append(t[g_index])
                 classification.append(self.getClassification(self.findClosest(t, k, g_index), g_index))
 
+            print "Testing game " + str(g) + " with " + str(k) + " nearest neighbors completed. Accuracy results below."
             confusion_matrix = self.confusion(true_labels, classification)
-            print
             self.generateStatistics(confusion_matrix)
     
     def generateStatistics(self, confusion_matrix):
         """Print out accuracy statistics"""
-        tp_0 = confusion_matrix["0"]["0"]
-        tn_0 = confusion_matrix["1"]["1"]
-        fp_0 = confusion_matrix["0"]["1"]
-        fn_0 = confusion_matrix["1"]["0"]
+        EPSILON = math.exp(-100) # add to avoid division by 0
+        tp_0 = confusion_matrix["0"]["0"] + EPSILON
+        tn_0 = confusion_matrix["1"]["1"] + EPSILON
+        fp_0 = confusion_matrix["0"]["1"] + EPSILON
+        fn_0 = confusion_matrix["1"]["0"] + EPSILON
 
-        tp_1 = confusion_matrix["1"]["1"]
-        tn_1 = confusion_matrix["0"]["0"]
-        fp_1 = confusion_matrix["1"]["0"]
-        fn_1 = confusion_matrix["0"]["1"]
+        tp_1 = confusion_matrix["1"]["1"] + EPSILON
+        tn_1 = confusion_matrix["0"]["0"] + EPSILON
+        fp_1 = confusion_matrix["1"]["0"] + EPSILON
+        fn_1 = confusion_matrix["0"]["1"] + EPSILON
 
         print "Accuracy: " + str(self.accuracy(tp_0, tn_0, fn_0, fp_0)) + "%"
 
@@ -86,16 +89,12 @@ class KNNClassifier:
         print "a    b"
         print str(confusion_matrix["0"]["0"]) + " | " + str(confusion_matrix["0"]["1"]) + "   a = 0"
         print "-----"
-        print str(confusion_matrix["1"]["0"]) + " | " + str(confusion_matrix["1"]["1"])  +  "   b = 1"
+        print str(confusion_matrix["1"]["0"]) + " | " + str(confusion_matrix["1"]["1"])  +  "   b = 1\n"
 
     def confusion(self, trueLabels, classifications):
         """Generates confusion matrix"""
         labels = list(set(trueLabels))
-        confusion_matrix = dict.fromkeys(labels)
-        for k in confusion_matrix.keys():
-            confusion_matrix[k] = dict.fromkeys(labels)
-            for k2 in confusion_matrix[k]:
-                confusion_matrix[k][k2] = 0
+        confusion_matrix = {"0": {"0": 0, "1": 0}, "1": {"0": 0, "1": 0}}
 
         true_length = len(trueLabels)
         class_length = len(classifications)
@@ -153,8 +152,8 @@ class KNNClassifier:
 try:
     train_file = "./data/final_train.csv"
     test_file = "./data/final_test.csv"
-    # games = ["220", "113200", "283040", "1500", "72850", "220200", "55140", "1510", "8980", "4540"]
-    games = ["220"]
+    games = ["220", "113200", "283040", "1500", "72850", "220200", "55140", "1510", "8980", "4540"]
+    # games = ["220"]
     knn = KNNClassifier(train_file, test_file, games)
     knn.classifyGames(5)
 
