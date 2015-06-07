@@ -50,15 +50,42 @@ class KNNClassifier:
             true_labels = []
             classification = []
 
-            # for t in self.test_set:
-            for t in range(len(self.test_set)):
+            for t in range(0, 10): # FOR TESTING ONLY!!!
+            # for t in range(len(self.test_set)):                
                 print t
                 t = self.test_set[t]
                 true_labels.append(t[g_index])
                 classification.append(self.getClassification(self.findClosest(t, k, g_index), g_index))
 
             confusion_matrix = self.confusion(true_labels, classification)
-            print confusion_matrix
+            print
+            self.generateStatistics(confusion_matrix)
+    
+    def generateStatistics(self, confusion_matrix):
+        tp_0 = confusion_matrix["0"]["0"]
+        tn_0 = confusion_matrix["1"]["1"]
+        fp_0 = confusion_matrix["0"]["1"]
+        fn_0 = confusion_matrix["1"]["0"]
+
+        tp_1 = confusion_matrix["1"]["1"]
+        tn_1 = confusion_matrix["0"]["0"]
+        fp_1 = confusion_matrix["1"]["0"]
+        fn_1 = confusion_matrix["0"]["1"]
+
+        print "Accuracy: " + str(self.accuracy(tp_0, tn_0, fn_0, fp_0)) + "%"
+
+        print "Precision (0): " + str(self.precision(tp_0, fp_0))
+        print "Recall (0): " + str(self.recall(tp_0, fn_0))
+        print "F1 (0): " + str(self.f_measure(self.precision(tp_0, fp_0), self.recall(tp_0, fn_0)))
+
+        print "Precision (1): " + str(self.precision(tp_1, fp_1))
+        print "Recall (1): " + str(self.recall(tp_1, fn_1))
+        print "F1 (1): " + str(self.f_measure(self.precision(tp_1, fp_1), self.recall(tp_1, fn_1)))
+
+        print "a    b"
+        print str(confusion_matrix["0"]["0"]) + " | " + str(confusion_matrix["0"]["1"]) + "   a = 0"
+        print "-----"
+        print str(confusion_matrix["1"]["0"]) + " | " + str(confusion_matrix["1"]["1"])  +  "   b = 1"
 
     def confusion(self, trueLabels, classifications):
         """Generates confusion matrix"""
