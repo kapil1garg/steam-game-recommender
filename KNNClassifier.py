@@ -9,7 +9,7 @@ import pdb
 import traceback
 
 class KNNClassifier:
-    'k-NN Classifier'
+    'k-NN Classifier using Hamming Distance'
 
     def __init__(self, train_data, test_data, test_games):
         train_header_row, self.train_set = self.loadDataset(train_data)
@@ -62,6 +62,7 @@ class KNNClassifier:
             self.generateStatistics(confusion_matrix)
     
     def generateStatistics(self, confusion_matrix):
+        """Print out accuracy statistics"""
         tp_0 = confusion_matrix["0"]["0"]
         tn_0 = confusion_matrix["1"]["1"]
         fp_0 = confusion_matrix["0"]["1"]
