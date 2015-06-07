@@ -31,6 +31,7 @@ class KNNClassifier:
         print "Total examples: " + str(len(self.train_set) + len(self.test_set))
         print "Number training examples: " + str(len(self.train_set))
         print "Number testing examples: " + str(len(self.test_set))
+        print "Number of games: " + str(len(self.header_row))
         print 
 
     def loadDataset(self, filename):
@@ -133,15 +134,14 @@ class KNNClassifier:
     def getClassification(self, closest, classification_index):
         """Returns classification of a testing instance based on majority vote by k-neighbors"""
         class_one = len([c for c in closest if nthBit(c, classification_index) == "1"])
-
         class_zero = len(closest) - class_one
+
         return "1" if class_one > class_zero else "0"
 
 try:
     train_file = "./data/final_train.csv"
     test_file = "./data/final_test.csv"
     games = ["220", "113200", "283040", "1500", "72850", "220200", "55140", "1510", "8980", "4540"]
-    # games = ["220"]
     knn = KNNClassifier(train_file, test_file, games)
     knn.classifyGames(5)
 
