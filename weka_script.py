@@ -39,7 +39,7 @@ def classify_and_save(classifier, name, outfile):
     test = loader.load_file("data/final_test.arff")
 
     count = 0
-    for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, 2283), 5)):
+    for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, 2283), 450)):
         train.class_index = i
         test.class_index = i
         count += 1
@@ -82,8 +82,8 @@ if __name__ == "__main__":
     try:
         jvm.start(max_heap_size="512m")
 
-        d_tree = Classifier(classname="weka.classifiers.trees.J48", options=["-C", "0.25", "-M", "2"])
-        classify_and_save(d_tree, "Decision Tree", "data/d_tree_results.csv")
+        # d_tree = Classifier(classname="weka.classifiers.trees.J48", options=["-C", "0.25", "-M", "2"])
+        # classify_and_save(d_tree, "Decision Tree", "data/d_tree_results.csv")
 
         naive_bayes = Classifier(classname="weka.classifiers.bayes.NaiveBayes")
         classify_and_save(naive_bayes, "Naive Bayes", "data/naive_bayes_results.csv")
