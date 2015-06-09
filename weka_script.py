@@ -85,8 +85,15 @@ if __name__ == "__main__":
         # d_tree = Classifier(classname="weka.classifiers.trees.J48", options=["-C", "0.25", "-M", "2"])
         # classify_and_save(d_tree, "Decision Tree", "data/d_tree_results.csv")
 
-        naive_bayes = Classifier(classname="weka.classifiers.bayes.NaiveBayes")
-        classify_and_save(naive_bayes, "Naive Bayes", "data/naive_bayes_results.csv")
+        # naive_bayes = Classifier(classname="weka.classifiers.bayes.NaiveBayes")
+        # classify_and_save(naive_bayes, "Naive Bayes", "data/naive_bayes_results.csv")
+
+        # bayes_net = Classifier(classname="weka.classifiers.bayes.BayesNet", options=["-D", "-Q", "weka.classifiers.bayes.net.search.local.K2", "--", "-P", "1", "-S", "BAYES", "-E", "weka.classifiers.bayes.net.estimate.SimpleEstimator", "--", "-A", "0.5"])
+        # classify_and_save(bayes_net, "Bayes Net", "data/bayes_net_results.csv")
+
+        # zero_r = Classifier(classname="weka.classifiers.rules.ZeroR")
+        # classify_and_save(zero_r, "ZeroR", "data/zero_r_results.csv")
+
     except Exception as e:
         typ, value, tb = sys.exc_info()
         traceback.print_exc()
