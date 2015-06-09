@@ -200,7 +200,7 @@ try:
     knn = KNNClassifier(train_file, test_file)
 
     # Classify test data for each game and get accuracy statistics
-    for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, len(game_list)), 450)):       
+    for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, len(game_list)), 450)):
         game_results.append(knn.classifyGame(5, i, game_list[i]))
 
     with open("./data/knn_5_results.csv", "wb") as f:
