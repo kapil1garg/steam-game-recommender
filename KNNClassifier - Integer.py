@@ -2,6 +2,7 @@ import heapq
 import csv
 import random
 import itertools
+from multiprocessing import Process, Queue
 
 import sys
 import pdb
@@ -22,6 +23,7 @@ class KNNClassifier:
 
         self.total_players = len(self.test_set)
         self.players_per_game_test = self.countPlayers()
+        self.classify_output = []
 
         # Print some statistics about the test and training data
         print "Total examples: " + str(len(self.train_set) + len(self.test_set))
@@ -54,7 +56,7 @@ class KNNClassifier:
 
             return header, data
 
-    def classifyGame(self, k, game_index, game_name):
+    def classifyGame(self, k, game_index, game_name, out_queue):
         """Runs kNN classificaion on each game in the inputted gamelist"""
         game_id = self.header_row[game_index]
         algorithm_name = "kNN (k = " + str(k) + ")"
@@ -79,7 +81,7 @@ class KNNClassifier:
             self.players_per_game_test[game_index]/float(self.total_players)
         ]
         result += self.generateStatistics(confusion_matrix)
-        return result
+        out_queue.put(result) # for multithreading
     
     def generateStatistics(self, confusion_matrix):
         """Print out accuracy statistics"""
@@ -125,7 +127,7 @@ class KNNClassifier:
         print "-----"
         print str(confusion_matrix["1"]["0"]) + " | " + str(confusion_matrix["1"]["1"])  +  "   b = 1\n"
 
-        return output
+        return output 
 
     def confusion(self, trueLabels, classifications):
         """Generates confusion matrix"""
@@ -200,9 +202,24 @@ try:
     knn = KNNClassifier(train_file, test_file)
 
     # Classify test data for each game and get accuracy statistics
+    q = Queue() # create queue to hold output as it finishes
+    jobs = [] # list of jobs run
+    
     for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, len(game_list)), 450)):
-        game_results.append(knn.classifyGame(5, i, game_list[i]))
+        # start a process for each iteration and store its output in the queue
+        p = Process(target = knn.classifyGame, args = (5, i, game_list[i], q))
+        jobs.append(p)
+        p.start()
+    
+    # combine output into one list
+    for i in range(len(jobs)):
+        game_results.append(q.get())
 
+    # wait until each job is finished
+    for p in jobs:
+        p.join()
+
+    # export
     with open("./data/knn_5_results.csv", "wb") as f:
         csv_writer = csv.writer(f, delimiter=",")
         csv_writer.writerow(csv_header)
@@ -213,3 +230,4 @@ except Exception as e:
     typ, value, tb = sys.exc_info()
     traceback.print_exc()
     pdb.post_mortem(tb)
+
