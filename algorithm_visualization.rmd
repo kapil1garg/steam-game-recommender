@@ -25,7 +25,7 @@ options(scipen = 100)
 
 ##SOURCED FROM COOKBOOK FOR R: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_%28ggplot2%29/ ##
 Multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL)
-  {
+{
   require(grid)
   
   plots <- c(list(...), plotlist)
@@ -35,27 +35,27 @@ Multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL)
   if (is.null(layout)) {
     layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
                      ncol = cols, nrow = ceiling(numPlots/cols))
-    }
+  }
   
   if (numPlots == 1) {
     print(plots[[1]])
     
-    } else {
-      grid.newpage()
-      pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+  } else {
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+    
+    for (i in 1:numPlots) {
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
       
-      for (i in 1:numPlots) {
-        matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-        
-        print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                        layout.pos.col = matchidx$col))
-        }
-      }
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
   }
+}
 
 ##SOURCED FROM: http://rpubs.com/kohske/dual_axis_in_ggplot2 ##
 MultipleAxes <- function(plot1, plot2)
-  {
+{
   # extract gtable but create the plots first
   g1 <- ggplot_gtable(ggplot_build(plot1))
   g2 <- ggplot_gtable(ggplot_build(plot2))
@@ -84,7 +84,7 @@ MultipleAxes <- function(plot1, plot2)
   #Draw graph
   #grid.draw(g)
   return(g)
-  }
+}
 
 #Function to align ggplot objects 
 ##SOURCED FROM baptiste: http://stackoverflow.com/questions/13294952/left-align-two-graph-edges-ggplot/13295880#13295880 ##
@@ -92,7 +92,7 @@ RbindGtableMax <- function(...){
   gtl <- list(...)
   stopifnot(all(sapply(gtl, is.gtable)))
   Bind2 <- function (x, y) 
-    {
+  {
     stopifnot(ncol(x) == ncol(y))
     if (nrow(x) == 0) 
       return(y)
@@ -106,16 +106,16 @@ RbindGtableMax <- function(...){
     x$widths <- grid::unit.pmax(x$widths, y$widths)
     x$grobs <- append(x$grobs, y$grobs)
     x
-    }
+  }
   
   Reduce(Bind2, gtl)
-  }
+}
 
 CbindGtableMax <- function(...){
   gtl <- list(...)
   stopifnot(all(sapply(gtl, is.gtable)))
   Bind2 <- function (x, y) 
-    {
+  {
     stopifnot(nrow(x) == nrow(y))
     if (ncol(x) == 0) 
       return(y)
@@ -129,23 +129,23 @@ CbindGtableMax <- function(...){
     x$heights <- grid::unit.pmax(x$heights, y$heights)
     x$grobs <- append(x$grobs, y$grobs)
     x
-    }
-  Reduce(Bind2, gtl)
   }
+  Reduce(Bind2, gtl)
+}
 
 #Custom tranformation for an nth-root axis
 NthrootTrans <- function(base = 2)
-  {
+{
   trans <- function(x) x^(1/base)
   inv <- function(x) x^base
   trans_new(paste0("nthroot", format(base)), trans, inv, domain = c(0, Inf))
-  }
+}
 
 #Rescale data to lower and upper values (default: 0-1) scale based on data sets min and max
 CustomRange <- function(x, lower = 0, upper = 1)
-  {
+{
   return(((x - min(x)) * ((upper - lower)/(max(x)-min(x))) + lower))
-  }
+}
 
 #Calculate the percentile ranks for each entry in a vector
 ##SOURCED FROM chi: http://stats.stackexchange.com/questions/11924/computing-percentile-rank-in-r ##
@@ -155,7 +155,7 @@ perc.rank <- function(x) trunc(rank(x))/length(x)
 monnb <- function(d) { 
   lt <- as.POSIXlt(as.Date(d, origin="1900-01-01"))
   lt$year*12 + lt$mon
-  } 
+} 
 # compute a month difference as a difference between two monnb's
 mondf <- function(d1, d2) { monnb(d2) - monnb(d1) }
 ``` 
@@ -167,6 +167,23 @@ raw.data <- fread("./data/CompiledResults.csv", header = T, verbose=T)
 setnames(raw.data, c("GameName", "SteamID", "Algorithm", "NPlayers", "PercPlayers", "Accuracy", "Precision_0 ", "Recall_0", "F1_0", "Precision_1", "Recall_1", "F1_1"))
 ```
 
+Compute Basic Stats
+```{r Basic Stats}
+data.stats <- raw.data[,list(f1_1_mean=mean(F1_1),
+                                           f1_1_min=min(F1_1),
+                                           f1_1_q1=quantile(F1_1, .25, na.rm=TRUE),
+                                           f1_1_median=quantile(F1_1, .50, na.rm=TRUE),
+                                           f1_1_q3=quantile(F1_1, .75, na.rm=TRUE),
+                                           f1_1_max=max(F1_1),
+                             f1_0_mean=mean(F1_0),
+                                           f1_0_min=min(F1_0),
+                                           f1_0_q1=quantile(F1_0, .25, na.rm=TRUE),
+                                           f1_0_median=quantile(F1_0, .50, na.rm=TRUE),
+                                           f1_0_q3=quantile(F1_0, .75, na.rm=TRUE),
+                                           f1_0_max=max(F1_0)),
+                                     by = Algorithm]
+```
+
 Melt dataset for ggplot
 ```{r Melt Data, echo = TRUE}
 data.melted <- melt(raw.data, id.vars = c("GameName", "SteamID", "Algorithm"))
@@ -174,7 +191,24 @@ data.melted <- melt(raw.data, id.vars = c("GameName", "SteamID", "Algorithm"))
 
 Create boxplot of F1 (1) and Accuracy scores for each algorithm
 ```{r Boxplot F1 (1), echo = TRUE}
-ggplot(raw.data, aes(x = Algorithm, y = F1_1, fill = Algorithm)) +
+f1.0.plot <- ggplot(raw.data, aes(x = Algorithm, y = F1_0, fill = Algorithm)) +
+  geom_boxplot() + 
+  scale_y_continuous(expand = c(0, 0),
+                     limits = c(0.4, 1),
+                     breaks = seq(0.4, 1, 0.05),
+                     label = seq(0.4, 1, 0.05),
+                     oob = rescale_none)+
+  scale_x_discrete(expand = c(0.01, 0.1)) + 
+  xlab("Algorithm") +
+  ylab("F1 Measure (TP = 0)") +
+  ggtitle("Boxplot of F1 Measure (TP = 0) for each Algorithm") +
+  guides(fill = guide_legend(order = 1, title = NULL))+
+  theme_bw()+
+  theme(plot.title = element_text(hjust = 0.5), axis.text.y = element_text(vjust = 0.25),
+        panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
+        legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
+
+f1.1.plot <- ggplot(raw.data, aes(x = Algorithm, y = F1_1, fill = Algorithm)) +
   geom_boxplot() + 
   scale_y_continuous(expand = c(0, 0),
                      limits = c(0, 1),
@@ -191,12 +225,12 @@ ggplot(raw.data, aes(x = Algorithm, y = F1_1, fill = Algorithm)) +
         panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
         legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
 
-ggplot(raw.data, aes(x = Algorithm, y = Accuracy, fill = Algorithm)) +
+accuracy.plot <- ggplot(raw.data, aes(x = Algorithm, y = Accuracy, fill = Algorithm)) +
   geom_boxplot() + 
   scale_y_continuous(expand = c(0, 0),
-                     limits = c(0, 100),
-                     breaks = seq(0, 100, 5),
-                     label = seq(0, 100, 5),
+                     limits = c(40, 100),
+                     breaks = seq(40, 100, 5),
+                     label = seq(40, 100, 5),
                      oob = rescale_none)+
   scale_x_discrete(expand = c(0.01, 0.1)) + 
   xlab("Algorithm") +
@@ -207,12 +241,14 @@ ggplot(raw.data, aes(x = Algorithm, y = Accuracy, fill = Algorithm)) +
   theme(plot.title = element_text(hjust = 0.5), axis.text.y = element_text(vjust = 0.25),
         panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
         legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
+
+Multiplot(f1.0.plot, f1.1.plot, accuracy.plot)
 ```
 
 Plot s scatterplot with linear regression though it and output regression coeffcients
 ```{r Regression Scatterplot}
 ggplot(raw.data, aes(x = NPlayers, y = F1_1, color = Algorithm)) +
-  geom_point(shape = 1) + 
+  geom_point(shape = 1) +
   geom_smooth(method = glm, se = FALSE) + 
   facet_grid(Algorithm ~ .) + 
   scale_y_continuous(expand = c(0, 0),
