@@ -39,7 +39,7 @@ def classify_and_save(classifier, name, outfile):
     test = loader.load_file("data/final_test.arff")
 
     count = 0
-    for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, 2283), 450)):
+    for i in itertools.chain(xrange(0, 50), random.sample(xrange(50, len(game_list)), 450)):
         train.class_index = i
         test.class_index = i
         count += 1
@@ -57,7 +57,7 @@ def classify_and_save(classifier, name, outfile):
                     steam_id,
                     name,
                     int(num_players),
-                    num_players/7821,
+                    num_players/1955,
                     evaluation.percent_correct,
                     evaluation.precision(0),
                     evaluation.recall(0),
