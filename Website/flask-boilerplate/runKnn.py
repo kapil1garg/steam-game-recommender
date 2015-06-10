@@ -1,10 +1,10 @@
 import sys
 import pdb
-
 import traceback
 import requests
-import string
 import json
+
+import KNN
 
 def get_keys(filepath):
     key_list = []
@@ -13,24 +13,11 @@ def get_keys(filepath):
             key_list.append(key.rstrip())
     return key_list
 
-u_name = "paep3nguin"
-
-def getUsername(nickname, api_key):
-    username = nickname
+def getUserGames(nickname, api_key):
     session = requests.Session()
     session.mount("http://", requests.adapters.HTTPAdapter(max_retries=10))
-    print "Retrieving user and game data for " + username + "...",
-    id_response_json = json.loads(session.get(url='http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + username).text)
-    # print json.dumps(id_response_json)
-   
-    # List of game app_ids for games with at least min_users
-    game_id_list = []
-
-    # List of game names for games with at least min_users
-    game_names = []
-
-    # Dictionary of users where the key is their username and the data is a tuple of their steam_id and a dictionary of games
-    user_cache = {}
+    print "Retrieving user and game data for " + nickname + "..."
+    id_response_json = json.loads(session.get(url='http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + nickname).text)
 
     # If user is found
     if id_response_json and id_response_json['response']['success'] == 1:
@@ -41,24 +28,25 @@ def getUsername(nickname, api_key):
 
         # If the user has games
         if games_response_json['response'] and games_response_json['response']['game_count'] > 0:
+            print "Success!"
             return games_response_json['response']['games']
         else:
             print "not enough games. User will be ignored."
-            return
     else:
         print "not found. User will be ignored."
 
-def loadDataset(filename):
-        """Loads data from a csv file"""
-        # Open the file
-        with open(filename, 'rb') as f:
-            # Read the header line so it is not used in data
-            header = f.next()
-            header = ''.join(header.splitlines()).split(",")
+def loadGameIDs(filename):
+    """Loads game naems from a csv file"""
+    # Open the file
+    with open(filename, 'rb') as f:
+        # Read the header line so it is not used in data
+        header = f.next()
+        header = ''.join(header.splitlines()).split(",")
+        header = [int(x) for x in header]
 
-            return header
+        return header
 
-def main():
+def gameRecommendations(u_name):
     # Get API key
     all_api_keys1 = get_keys("./num1.txt")
     all_api_keys2 = get_keys("./num2.txt")
@@ -72,10 +60,9 @@ def main():
     session = requests.Session()
     session.mount("http://", requests.adapters.HTTPAdapter(max_retries=10))
 
-    games_response_json = getUsername(u_name, api_key)
+    games_response_json = getUserGames(u_name, api_key)
 
-    all_games = loadDataset("./data/games_by_username_all.csv")
-
+    all_games = loadGameIDs("./static/data/id_header.csv")
 
     # Get all of the game names and IDs from steam and save them in a dictionary for easy usage
     game_list = json.loads(session.get(url="http://api.steampowered.com/ISteamApps/GetAppList/v2").text)['applist']['apps']
@@ -83,21 +70,27 @@ def main():
     for game in game_list:
         game_dict[game['appid']] = game
 
-    user_game_array = [0]*len(all_games)
+    user_game_array = ["0"] * len(all_games)
 
     for game in games_response_json:
-        game = game_dict[game['appid']]['name'].encode('ascii', 'ignore').translate(None, string.punctuation).replace(" ", "_")
-        game_index = all_games.index(game)
-        user_game_array[game_index] = 1
+        if game['appid'] in all_games:
+            game_index = all_games.index(game['appid'])
+            user_game_array[game_index] = "1"
 
-    print len(games_response_json)
+    all_games = [game_dict[x]['name'] for x in all_games]
+
+    game_bit_string = int(''.join(user_game_array), 2)
+    dataset = KNN.loadDataset("./static/data/games_by_username_all.csv")
+    closest = KNN.findClosest(dataset, game_bit_string, 100)
+    return KNN.getTopGames(KNN.getVotes(all_games, closest, game_bit_string), 5)
 
 if __name__ == '__main__':
     # For debugging purposes
     # Tells pdb to break and debug when something bad happens
     # Sort of like a real IDE now!
     try:
-        main()
+        print gameRecommendations("paep3nguin")
+
     except Exception as e:
         typ, value, tb = sys.exc_info()
         traceback.print_exc()
