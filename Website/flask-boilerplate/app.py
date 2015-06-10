@@ -8,7 +8,7 @@ import logging
 from logging import Formatter, FileHandler
 from forms import *
 
-from runKnn import *
+import runKnn
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -44,13 +44,14 @@ def login_required(test):
 
 @app.route('/')
 def home():
-    return render_template('pages/placeholder.home.html')
+    return render_template('pages/placeholder.home.html', games=None)
 
 @app.route('/', methods=['POST'])
 def home_post():
     steam_id = request.form.getlist('steam_id')
-    games = gameRecommendations(steam_id[0])
-    return games
+    games = runKnn.gameRecommendations(steam_id[0])
+    games = [x[0] for x in games]
+    return render_template('pages/placeholder.home.html', games=games)
 
 @app.route('/the_project')
 def the_project():
