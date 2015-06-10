@@ -44,7 +44,6 @@ def login_required(test):
 def home():
     return render_template('pages/placeholder.home.html')
 
-
 @app.route('/the_project')
 def the_project():
     return render_template('pages/placeholder.the_project.html')
@@ -58,6 +57,9 @@ def login():
     form = LoginForm(request.form)
     return render_template('forms/login.html', form=form)
 
+@app.route('/tester')
+def tester():
+    return render_template('pages/tester.html')
 
 @app.route('/register')
 def register():
