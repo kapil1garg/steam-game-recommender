@@ -17,25 +17,14 @@ Though the classifiers we found tended to vary in accuracy and f-measure dependi
 <section>
   <h2>Try it out</h2>
   <p class="lead">Input your steam username below, and hit "Submit". Your library will be run through our KNN algorithm and you will recieve a list of suggested games. Please allow up to a minute for runtime.</P><p>(If you want to test it out but don't have a steam account, you can use one of our team member's usernames: <b>Adawgizzle</b>)</p>
-  <div class="input-list style-1 clearfix">
-      <input id="usname" type="text" placeholder="Your Steam Username">
-      <br>
-      <a type="submit" class="button" onclick="testit()"><!-- HERE IS WHERE YOU PUT THE PYTHON PROGRAM -->
-	  	<span>Submit</span>
-	  </a>
-  </div>
-  <script type="text/javascript">
-  function testit() {
-    var usersName = document.getElementById("usname").value;
-    $.ajax({
-      type: "POST",
-      url: "~/runKNN",
-      data: { param: usersName}
-    }).done(function( o ) {
-      
-    });
-  }
-  </script>
+<form action="." method="POST">
+  <input type = "text" class = "form-control" name="steam_id" placeholder = "Your Steam Username">
+  <br>
+  <input type="submit" class="btn" name="home" value="Submit">
+</form>
+
+
+
 </section>
 <br><br>
 <!--<p>Pin a fixed-height footer to the bottom of the viewport in desktop browsers with this custom HTML and CSS. A fixed navbar has been added within <code>#wrap</code> with <code>padding-top: 60px;</code> on the <code>.container</code>.</p>-->
