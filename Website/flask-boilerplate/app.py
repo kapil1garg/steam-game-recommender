@@ -57,8 +57,8 @@ def login():
     form = LoginForm(request.form)
     return render_template('forms/login.html', form=form)
 
-@app.route('/tester')
-def tester():
+@app.route('/runKNN')
+def runKNN():
     return render_template('pages/tester.html')
 
 @app.route('/register')

@@ -29,7 +29,7 @@ Though the classifiers we found tended to vary in accuracy and f-measure dependi
     var usersName = document.getElementById("usname").value;
     $.ajax({
       type: "POST",
-      url: "~/runKNN.py",
+      url: "~/runKNN",
       data: { param: usersName}
     }).done(function( o ) {
       
