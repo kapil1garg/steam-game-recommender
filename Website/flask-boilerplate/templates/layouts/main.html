@@ -54,8 +54,6 @@
           <ul class="nav navbar-nav">
             <li {% if request.endpoint == 'home' %} class="active" {% endif %}><a href="{{ url_for('home') }}">Home</a></li>
             <li {% if request.endpoint == 'the_project' %} class="active" {% endif %}><a href="{{ url_for('the_project') }}">The Project</a></li>
-            <li {% if request.endpoint == 'the_team' %} class="active" {% endif %}><a href="{{ url_for(
-              'the_team') }}">The Team</a></li>
             <!--<li class="dropdown">
               <a class="dropdown-toggle" data-toggle="dropdown">Dropdown <b class="caret"></b></a>
               <ul class="dropdown-menu">
@@ -98,11 +96,9 @@
   </div>
 
   <div id="footer">
-    <div class="boxes">
-      <div class = "first">EECS 349 &copy; Some Rights Reserved.</div>
-      <div class = "second">aaronkarp2017@u.northwestern.edu</div>
+      <p>EECS 349 &copy; Some Rights Reserved.</p>
+      <p>aaronkarp2017@u.northwestern.edu</p>
       {% block footer %}{% endblock %}
-    </div>
   </div>
 
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
