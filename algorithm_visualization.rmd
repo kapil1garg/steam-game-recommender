@@ -169,7 +169,7 @@ raw.data <- fread("./data/CompiledResults.csv", header = T, verbose=T)
 setnames(raw.data, c("GameName", "SteamID", "Algorithm", "NPlayers", "PercPlayers", "Accuracy", "Precision_0 ", "Recall_0", "F1_0", "Precision_1", "Recall_1", "F1_1"))
 
 #Declare width, height output settings for pdf plot export
-pageSize <- c(7.5, 13) #width, height
+pageSize <- c(8.5, 11) #width, height
 pHeight <- pageSize[1] * 2 #apply scaling factor of 2 so graph is less compressed
 pWidth <- pageSize[2] * 2 #apply scaling factor of 2 so graph is less compressed
 ```
