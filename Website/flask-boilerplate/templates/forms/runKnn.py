@@ -5,8 +5,6 @@ import json
 
 import KNN
 
-import requests as reqGet
-
 def get_keys(filepath):
     key_list = []
     with open(filepath) as keys:
@@ -15,8 +13,8 @@ def get_keys(filepath):
     return key_list
 
 def getUserGames(nickname, api_key):
-    session = reqGet.Session()
-    session.mount("http://", reqGet.adapters.HTTPAdapter(max_retries=10))
+    session = requests.Session()
+    session.mount("http://", requests.adapters.HTTPAdapter(max_retries=10))
     print "Retrieving user and game data for " + nickname + "..."
     id_response_json = json.loads(session.get(url='http://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=' + api_key + '&vanityurl=' + nickname).text)
 
@@ -58,8 +56,8 @@ def gameRecommendations(u_name):
         return
 
     # Set up a requests session to allow retries when a request fails
-    session = reqGet.Session()
-    session.mount("http://", reqGet.adapters.HTTPAdapter(max_retries=10))
+    session = requests.Session()
+    session.mount("http://", requests.adapters.HTTPAdapter(max_retries=10))
 
     games_response_json = getUserGames(u_name, api_key)
 
@@ -72,9 +70,6 @@ def gameRecommendations(u_name):
         game_dict[game['appid']] = game
 
     user_game_array = ["0"] * len(all_games)
-
-    if not games_response_json:
-        return
 
     for game in games_response_json:
         if game['appid'] in all_games:
