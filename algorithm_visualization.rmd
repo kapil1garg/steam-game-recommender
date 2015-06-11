@@ -176,7 +176,9 @@ pWidth <- pageSize[2] * 2 #apply scaling factor of 2 so graph is less compressed
 
 Compute Basic Stats
 ```{r Basic Stats}
-data.stats <- raw.data[,list(f1_1_mean=mean(F1_1),
+data.stats <- raw.data[,list(accuracy_mean = mean(Accuracy)/100,
+                             accuracy_median = median(Accuracy)/100,
+                             f1_1_mean=mean(F1_1),
                                            f1_1_min=min(F1_1),
                                            f1_1_q1=quantile(F1_1, .25, na.rm=TRUE),
                                            f1_1_median=quantile(F1_1, .50, na.rm=TRUE),
