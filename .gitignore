@@ -131,6 +131,7 @@ vignettes/*.pdf
 
 # specific files and folders
 data/
+analysis/
 APIs/
 .Rproj.user
 *.Rproj

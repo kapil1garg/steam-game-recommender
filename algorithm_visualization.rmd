@@ -18,6 +18,8 @@ library(dplyr)
 library(TTR)
 library(scales)
 library(cluster)
+library(extrafont)
+loadfonts()
 options(digits = 15)
 options(scipen = 100)
 
@@ -165,6 +167,11 @@ Import compiled data
 # Import pulled Steam data
 raw.data <- fread("./data/CompiledResults.csv", header = T, verbose=T)
 setnames(raw.data, c("GameName", "SteamID", "Algorithm", "NPlayers", "PercPlayers", "Accuracy", "Precision_0 ", "Recall_0", "F1_0", "Precision_1", "Recall_1", "F1_1"))
+
+#Declare width, height output settings for pdf plot export
+pageSize <- c(7.5, 13) #width, height
+pHeight <- pageSize[1] * 2 #apply scaling factor of 2 so graph is less compressed
+pWidth <- pageSize[2] * 2 #apply scaling factor of 2 so graph is less compressed
 ```
 
 Compute Basic Stats
@@ -182,6 +189,7 @@ data.stats <- raw.data[,list(f1_1_mean=mean(F1_1),
                                            f1_0_q3=quantile(F1_0, .75, na.rm=TRUE),
                                            f1_0_max=max(F1_0)),
                                      by = Algorithm]
+write.csv(x = data.stats, file = "./data/CompiledData_Stats.csv", row.names = FALSE)
 ```
 
 Melt dataset for ggplot
@@ -198,13 +206,16 @@ f1.0.plot <- ggplot(raw.data, aes(x = Algorithm, y = F1_0, fill = Algorithm)) +
                      breaks = seq(0.4, 1, 0.05),
                      label = seq(0.4, 1, 0.05),
                      oob = rescale_none)+
-  scale_x_discrete(expand = c(0.01, 0.1)) + 
+  scale_x_discrete(expand = c(0.01, 0.1)) +
+  scale_fill_brewer(palette = "Dark2") + 
   xlab("Algorithm") +
   ylab("F1 Measure (TP = 0)") +
-  ggtitle("Boxplot of F1 Measure (TP = 0) for each Algorithm") +
+  ggtitle("Boxplot of F1 Measure (TP = 0) by Algorithm") +
   guides(fill = guide_legend(order = 1, title = NULL))+
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5), axis.text.y = element_text(vjust = 0.25),
+  theme(plot.title = element_text(hjust = 0, vjust = 1, size = 20), 
+        axis.title.x = element_text(vjust = 0, size = 13), axis.title.y = element_text(hjust = 0.5, size = 13),
+        axis.text.x = element_text(size = 12), axis.text.y = element_text(vjust = 0.25, size = 10),
         panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
         legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
 
@@ -216,12 +227,15 @@ f1.1.plot <- ggplot(raw.data, aes(x = Algorithm, y = F1_1, fill = Algorithm)) +
                      label = seq(0, 1, 0.05),
                      oob = rescale_none)+
   scale_x_discrete(expand = c(0.01, 0.1)) + 
+  scale_fill_brewer(palette = "Dark2") +
   xlab("Algorithm") +
   ylab("F1 Measure (TP = 1)") +
-  ggtitle("Boxplot of F1 Measure (TP = 1) for each Algorithm") +
+  ggtitle("Boxplot of F1 Measure (TP = 1) by Algorithm") +
   guides(fill = guide_legend(order = 1, title = NULL))+
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5), axis.text.y = element_text(vjust = 0.25),
+  theme(plot.title = element_text(hjust = 0, vjust = 1, size = 20), 
+        axis.title.x = element_text(vjust = 0, size = 13), axis.title.y = element_text(hjust = 0.5, size = 13),
+        axis.text.x = element_text(size = 12), axis.text.y = element_text(vjust = 0.25, size = 10),
         panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
         legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
 
@@ -233,21 +247,29 @@ accuracy.plot <- ggplot(raw.data, aes(x = Algorithm, y = Accuracy, fill = Algori
                      label = seq(40, 100, 5),
                      oob = rescale_none)+
   scale_x_discrete(expand = c(0.01, 0.1)) + 
+  scale_fill_brewer(palette = "Dark2") +
   xlab("Algorithm") +
   ylab("Accuracy") +
-  ggtitle("Boxplot of Accuracy for each Algorithm") +
+  ggtitle("Boxplot of Accuracy by Algorithm") +
   guides(fill = guide_legend(order = 1, title = NULL))+
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5), axis.text.y = element_text(vjust = 0.25),
+  theme(plot.title = element_text(hjust = 0, vjust = 1, size = 20), 
+        axis.title.x = element_text(vjust = 0, size = 13), axis.title.y = element_text(hjust = 0.5, size = 13),
+        axis.text.x = element_text(size = 12), axis.text.y = element_text(vjust = 0.25, size = 10),
         panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
         legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
 
-Multiplot(f1.0.plot, f1.1.plot, accuracy.plot)
+pdf(file = paste("./analysis/",
+                 "F1_Accuracy_Boxplots",
+                 ".pdf", sep = ""),
+    width = pWidth, height = pHeight, compress = FALSE)
+Multiplot(f1.0.plot, f1.1.plot, accuracy.plot, cols = 1)
+graphics.off()
 ```
 
 Plot s scatterplot with linear regression though it and output regression coeffcients
 ```{r Regression Scatterplot}
-ggplot(raw.data, aes(x = NPlayers, y = F1_1, color = Algorithm)) +
+linear.reg <- ggplot(raw.data, aes(x = NPlayers, y = F1_1, color = Algorithm)) +
   geom_point(shape = 1) +
   geom_smooth(method = glm, se = FALSE) + 
   facet_grid(Algorithm ~ .) + 
@@ -263,12 +285,21 @@ ggplot(raw.data, aes(x = NPlayers, y = F1_1, color = Algorithm)) +
                      oob = rescale_none)+
   xlab("Number of Players in Test Set") +
   ylab("F1 Measure (TP = 1)") +
-  ggtitle("Scatterplot of F1 Measure (TP = 1) for each Algorithm with Regression Line") +
+  ggtitle("Scatterplot of F1 Measure (TP = 1) for each Algorithm with Linear Regression Line") +
   guides(color = guide_legend(order = 1, title = NULL))+
   theme_bw()+
-  theme(plot.title = element_text(hjust = 0.5), axis.text.y = element_text(vjust = 0.25),
+  theme(plot.title = element_text(hjust = 0, vjust = 1, size = 20), 
+        axis.title.x = element_text(vjust = 0, size = 13), axis.title.y = element_text(hjust = 0.5, size = 13),
+        axis.text.x = element_text(size = 12), axis.text.y = element_text(vjust = 0.25, size = 10),
         panel.grid.minor = element_line(color = "gray", size = 0.3), panel.grid.major = element_line(color = "gray", size = 0.3), panel.margin = unit(x = 0.12, "inches"),
         legend.box = "vertical", legend.box.just = "left", legend.position = "left", legend.key = element_blank(), legend.text= element_text(size = 12))
+
+pdf(file = paste("./analysis/",
+                 "Linear_Regression_F1",
+                 ".pdf", sep = ""),
+    width = pWidth, height = pHeight, compress = FALSE)
+linear.reg
+graphics.off()
 
 # Linear Regression (fitting linear curve)
 summary(lm(F1_1 ~ NPlayers, raw.data[Algorithm == "Bayes Net"]))
